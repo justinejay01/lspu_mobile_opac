@@ -14,19 +14,15 @@ class _Main extends StatefulWidget {
 
 class _MainState extends State<_Main> {
   var db = dbase();
-  List<String> dept = [];
+  List<String> topBooks = [];
+  List<String> listBooks = [];
+  List<String> listGenres = [];
+  List<String> listDepts = [];
 
-  void _getDept() {
-    db.getConn().then((conn) {
-      String query = 'select dept_name from dept';
-      conn.query(query).then((result) {
-        for (var row in result) {
-          setState(() {
-            dept.add(row[0]);
-          });
-        }
-      });
-    });
+  Future<void> _getDept() async {
+    topBooks = await db.getTopBooks();
+    listGenres = await db.getGenres();
+    listDepts = await db.getDept();
   }
 
   @override
@@ -103,8 +99,9 @@ class _MainState extends State<_Main> {
             child: ListView(
               scrollDirection: Axis.horizontal,
               children: [
-                for(int i = 1; i <= 10; i++)
-                  showBooksList('Sample $i')
+                for(int i = 0; i < 9; i++)
+                  if (topBooks.length > i)
+                    showTopList(topBooks[i])
               ],
             ),
           ),
@@ -126,8 +123,9 @@ class _MainState extends State<_Main> {
             child: ListView(
               scrollDirection: Axis.horizontal,
               children: [
-                for(int i = 1; i <= 10; i++)
-                  showBooksList('Sample $i')
+                for(int i = 0; i < 9; i++)
+                  if (listGenres.length > i)
+                    showTopList(listGenres[i])
               ],
             ),
           ),
@@ -150,8 +148,8 @@ class _MainState extends State<_Main> {
               scrollDirection: Axis.horizontal,
               children: [
                 for(int i = 0; i < 9; i++)
-                  if (dept.length > i)
-                    showBooksList(dept[i])
+                  if (listDepts.length > i)
+                    showTopList(listDepts[i])
               ],
             ),
           ),
@@ -191,7 +189,7 @@ class _MainState extends State<_Main> {
 }
 
 @override
-Widget showBooksList(String name) => Container(
+Widget showTopList(String name) => Container(
     width: 150.0,
     margin: const EdgeInsets.only(right: 10.0),
     decoration: BoxDecoration(
