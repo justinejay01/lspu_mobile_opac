@@ -12,10 +12,19 @@ class _Main extends StatefulWidget {
   State<_Main> createState() => _MainState();
 }
 
+class _OpenBook extends StatefulWidget {
+  final String bookId;
+
+  const _OpenBook({Key? key, required this.bookId}) : super(key: key);
+
+  @override
+  State<_OpenBook> createState() => _OpenBookState();
+}
+
 class _MainState extends State<_Main> {
   var db = dbase();
-  List<String> topBooks = [];
-  List<String> listBooks = [];
+  Map<String, String> topBooks = {};
+  Map<String, String> listBooks = {};
   List<String> listGenres = [];
   List<String> listDepts = [];
 
@@ -28,6 +37,8 @@ class _MainState extends State<_Main> {
   @override
   Widget build(BuildContext context) {
     _getDept();
+
+    var topBook = topBooks.entries.toList();
     return Scaffold(
         resizeToAvoidBottomInset: false,
         body: SingleChildScrollView(
@@ -109,7 +120,7 @@ class _MainState extends State<_Main> {
                   scrollDirection: Axis.horizontal,
                   children: [
                     for (int i = 0; i < 9; i++)
-                      if (topBooks.length > i) showTopList(topBooks[i])
+                      if (topBooks.length > i) showTopList(context, topBook[i].key, topBook[i].value)
                   ],
                 ),
               ),
@@ -131,7 +142,7 @@ class _MainState extends State<_Main> {
                   scrollDirection: Axis.horizontal,
                   children: [
                     for (int i = 0; i < 9; i++)
-                      if (listGenres.length > i) showTopList(listGenres[i])
+                      if (listGenres.length > i) showTopList(context, listGenres[i], "")
                   ],
                 ),
               ),
@@ -153,7 +164,7 @@ class _MainState extends State<_Main> {
                   scrollDirection: Axis.horizontal,
                   children: [
                     for (int i = 0; i < 9; i++)
-                      if (listDepts.length > i) showTopList(listDepts[i])
+                      if (listDepts.length > i) showTopList(context, listDepts[i], "")
                   ],
                 ),
               ),
@@ -192,11 +203,22 @@ class _MainState extends State<_Main> {
   }
 }
 
-class OpenBook extends State<_Main> {
+class _OpenBookState extends State<_OpenBook> {
+  var db = dbase();
+  List<String> bookInfo = [];
+
+  Future<void> _getBookInfo(String bookId) async {
+    bookInfo = await db.getBookInfo(bookId);
+  }
   @override
   Widget build(BuildContext context) {
+    _getBookInfo(widget.bookId);
+    
     return WillPopScope(
-      onWillPop: onWillPop,
+      onWillPop: () async {
+        Navigator.pop(context);
+        return true;
+      },
       child: Scaffold(
         resizeToAvoidBottomInset: false,
         body: SingleChildScrollView(
@@ -211,10 +233,10 @@ class OpenBook extends State<_Main> {
                         color: Colors.red,
                         height: MediaQuery.of(context).size.height * 0.2,
                         width: MediaQuery.of(context).size.width,
-                        child: const Center(
+                        child: Center(
                           child: Text(
-                            'LSPU Mobile Library',
-                            style: TextStyle(
+                            bookInfo[0],
+                            style: const TextStyle(
                               fontWeight: FontWeight.w500,
                               fontSize: 30,
                               color: Colors.white,
@@ -269,24 +291,32 @@ class OpenBook extends State<_Main> {
 }
 
 @override
-Widget showTopList(String name) => Container(
-    width: 150.0,
-    margin: const EdgeInsets.only(right: 10.0),
-    decoration: BoxDecoration(
-        border: Border.all(
-          color: Colors.black12,
-        ),
-        borderRadius: const BorderRadius.all(Radius.circular(20))),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisAlignment: MainAxisAlignment.end,
-      mainAxisSize: MainAxisSize.max,
-      children: <Widget>[
-        Container(
-            margin: const EdgeInsets.only(left: 5.0, bottom: 5.0),
-            child: Text(
-              name,
-              style: const TextStyle(fontWeight: FontWeight.bold),
-            ))
-      ],
-    ));
+Widget showTopList(BuildContext c, String bookId, String bookName) => InkWell(
+  onTap: () {
+    Navigator.push(c, MaterialPageRoute(builder: (BuildContext c) {
+      return _OpenBook(bookId: bookId);
+    }));
+  },
+  child: Container(
+      width: 150.0,
+      margin: const EdgeInsets.only(right: 10.0),
+      decoration: BoxDecoration(
+          border: Border.all(
+            color: Colors.black12,
+          ),
+          borderRadius: const BorderRadius.all(Radius.circular(20))),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.end,
+        mainAxisSize: MainAxisSize.max,
+        children: <Widget>[
+          Container(
+              margin: const EdgeInsets.only(left: 5.0, bottom: 5.0),
+              child: Text(
+                bookName,
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ))
+        ],
+      ),
+  ),
+);

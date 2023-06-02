@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:mysql_client/mysql_client.dart';
 
 class dbase {
-  static String host = '127.0.0.1',
+  static String host = '10.200.5.227',
                 user = 'root',
                 password = '',
                 db = 'lspu_library';
@@ -22,12 +22,12 @@ class dbase {
     );
   }
 
-  Future<List<String>> getTopBooks() async {
+  Future<Map<String, String>> getTopBooks() async {
     MySQLConnectionPool conn = getConn();
-    List<String> topBooks = [];
-    var r = await conn.execute("SELECT book_title FROM books;");
+    Map<String, String> topBooks = {};
+    var r = await conn.execute("SELECT book_id, book_title FROM books;");
     for (final row in r.rows) {
-      topBooks.add(row.typedColAt(0));
+      topBooks[row.typedColAt(0)] = row.typedColAt(1);
     }
     await conn.close();
     return topBooks;
@@ -53,6 +53,17 @@ class dbase {
     }
     await conn.close();
     return dept;
+  }
+
+  Future<List<String>> getBookInfo(String bookId) async {
+    MySQLConnectionPool conn = getConn();
+    List<String> bookInfo = [];
+    var r = await conn.execute("SELECT book_title, book_author, book_summary FROM books WHERE book_id = $bookId");
+    for (final row in r.rows) {
+      bookInfo.add(row.typedColAt(0));
+    }
+    await conn.close();
+    return bookInfo;
   }
   /*
   FutureOr<List<String>> _getDept() async {
