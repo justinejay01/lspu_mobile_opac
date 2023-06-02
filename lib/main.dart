@@ -28,181 +28,205 @@ class _MainState extends State<_Main> {
   List<String> listGenres = [];
   List<String> listDepts = [];
 
-  Future<void> _getDept() async {
+  /*
+  Future<void> _get() async {
     topBooks = await db.getTopBooks();
     listGenres = await db.getGenres();
     listDepts = await db.getDept();
   }
 
+   */
+
+  Future<Map<String,String>> _get() async {
+    return await db.getTopBooks();
+  }
+
   @override
   Widget build(BuildContext context) {
-    _getDept();
+    _get();
 
-    var topBook = topBooks.entries.toList();
-    return Scaffold(
-        resizeToAvoidBottomInset: false,
-        body: SingleChildScrollView(
-          child: Column(
-            children: <Widget>[
-              Stack(
-                children: <Widget>[
-                  Column(
+    return FutureBuilder<Map<String,String>>(
+      future: _get(),
+        builder: (BuildContext c, AsyncSnapshot<Map<String, String>> snapshot) {
+          if (snapshot.hasData) {
+            var topBook = topBooks.entries.toList();
+            return Scaffold(
+                resizeToAvoidBottomInset: false,
+                body: SingleChildScrollView(
+                  child: Column(
                     children: <Widget>[
-                      Container(
-                        // Background
-                        color: Colors.red,
-                        height: MediaQuery.of(context).size.height * 0.2,
-                        width: MediaQuery.of(context).size.width,
-                        child: const Center(
-                          child: Text(
-                            'LSPU Mobile Library',
-                            style: TextStyle(
-                              fontWeight: FontWeight.w500,
-                              fontSize: 30,
-                              color: Colors.white,
+                      Stack(
+                        children: <Widget>[
+                          Column(
+                            children: <Widget>[
+                              Container(
+                                // Background
+                                color: Colors.red,
+                                height: MediaQuery.of(context).size.height * 0.2,
+                                width: MediaQuery.of(context).size.width,
+                                child: const Center(
+                                  child: Text(
+                                    'LSPU Mobile Library',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w500,
+                                      fontSize: 30,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              Container(
+                                color: Colors.transparent,
+                                height: 50,
+                                width: MediaQuery.of(context).size.width,
+                              ),
+                            ],
+                          ),
+                          Positioned(
+                            top: MediaQuery.of(context).size.height * 0.17,
+                            left: 20.0,
+                            right: 20.0,
+                            child: AppBar(
+                              backgroundColor: Colors.white,
+                              leading: const Icon(
+                                Icons.menu,
+                                color: Colors.red,
+                              ),
+                              primary: false,
+                              title: const TextField(
+                                  decoration: InputDecoration(
+                                      hintText: "Search",
+                                      border: InputBorder.none,
+                                      hintStyle: TextStyle(color: Colors.grey))),
+                              actions: <Widget>[
+                                IconButton(
+                                  icon: const Icon(Icons.search, color: Colors.red),
+                                  onPressed: () {},
+                                ),
+                                IconButton(
+                                  icon: const Icon(Icons.notifications,
+                                      color: Colors.red),
+                                  onPressed: () {},
+                                )
+                              ],
                             ),
+                          )
+                        ],
+                      ),
+                      Container(
+                        margin: const EdgeInsets.only(left: 20.0),
+                        child: const Align(
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            "Top Books",
+                            textAlign: TextAlign.start,
+                            style: TextStyle(fontWeight: FontWeight.bold),
                           ),
                         ),
                       ),
                       Container(
-                        color: Colors.transparent,
-                        height: 50,
-                        width: MediaQuery.of(context).size.width,
+                        padding: const EdgeInsets.fromLTRB(20.0, 15.0, 20.0, 10.0),
+                        height: 200.0,
+                        child: ListView(
+                          scrollDirection: Axis.horizontal,
+                          children: [
+                            for (int i = 1; i < 9; i++)
+                              if (topBooks.length > i)
+                                showTopList(context, topBook[i].key, topBook[i].value)
+                          ],
+                        ),
+                      ),
+                      Container(
+                        margin: const EdgeInsets.only(left: 20.0, top: 10),
+                        child: const Align(
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            "By Genres",
+                            textAlign: TextAlign.start,
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.fromLTRB(20.0, 15.0, 20.0, 10.0),
+                        height: 200.0,
+                        child: ListView(
+                          scrollDirection: Axis.horizontal,
+                          children: [
+                            for (int i = 0; i < 9; i++)
+                              if (listGenres.length > i)
+                                showTopList(context, listGenres[i], "")
+                          ],
+                        ),
+                      ),
+                      Container(
+                        margin: const EdgeInsets.only(left: 20.0, top: 10),
+                        child: const Align(
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            "By Department",
+                            textAlign: TextAlign.start,
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.fromLTRB(20.0, 15.0, 20.0, 10.0),
+                        height: 200.0,
+                        child: ListView(
+                          scrollDirection: Axis.horizontal,
+                          children: [
+                            for (int i = 0; i < 9; i++)
+                              if (listDepts.length > i)
+                                showTopList(context, listDepts[i], "")
+                          ],
+                        ),
+                      ),
+                      GridView.count(
+                        crossAxisCount: 2,
+                        shrinkWrap: true,
+                        children: <Widget>[
+                          for (int i = 1; i <= 10; i++)
+                            Card(
+                                margin: const EdgeInsets.fromLTRB(10, 5, 10, 15),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10.0),
+                                ),
+                                elevation: 5,
+                                child: InkWell(
+                                  onTap: () async {
+                                    await Navigator.push(context, MaterialPageRoute(builder: (BuildContext c) {
+                                      return _OpenBook(bookId: topBook[i].key);
+                                    }));
+                                  },
+                                  child: Column(
+                                    children: [
+                                      AspectRatio(
+                                        aspectRatio: 5 / 4,
+                                        child: Image.asset(
+                                          "assets/${topBook[i].value}.jpg",
+                                          fit: BoxFit.fill,
+                                        ),
+                                      ),
+                                      Padding(
+                                        padding: const EdgeInsets.all(8),
+                                        child: Text(topBook[i].value),
+                                      ),
+                                    ],
+                                  ),
+                                )
+                            ),
+                        ],
                       ),
                     ],
                   ),
-                  Positioned(
-                    top: MediaQuery.of(context).size.height * 0.17,
-                    left: 20.0,
-                    right: 20.0,
-                    child: AppBar(
-                      backgroundColor: Colors.white,
-                      leading: const Icon(
-                        Icons.menu,
-                        color: Colors.red,
-                      ),
-                      primary: false,
-                      title: const TextField(
-                          decoration: InputDecoration(
-                              hintText: "Search",
-                              border: InputBorder.none,
-                              hintStyle: TextStyle(color: Colors.grey))),
-                      actions: <Widget>[
-                        IconButton(
-                          icon: const Icon(Icons.search, color: Colors.red),
-                          onPressed: () {},
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.notifications,
-                              color: Colors.red),
-                          onPressed: () {},
-                        )
-                      ],
-                    ),
-                  )
-                ],
-              ),
-              Container(
-                margin: const EdgeInsets.only(left: 20.0),
-                child: const Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    "Top Books",
-                    textAlign: TextAlign.start,
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.fromLTRB(20.0, 15.0, 20.0, 10.0),
-                height: 200.0,
-                child: ListView(
-                  scrollDirection: Axis.horizontal,
-                  children: [
-                    for (int i = 0; i < 9; i++)
-                      if (topBooks.length > i)
-                        showTopList(context, topBook[i].key, topBook[i].value)
-                  ],
-                ),
-              ),
-              Container(
-                margin: const EdgeInsets.only(left: 20.0, top: 10),
-                child: const Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    "By Genres",
-                    textAlign: TextAlign.start,
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.fromLTRB(20.0, 15.0, 20.0, 10.0),
-                height: 200.0,
-                child: ListView(
-                  scrollDirection: Axis.horizontal,
-                  children: [
-                    for (int i = 0; i < 9; i++)
-                      if (listGenres.length > i)
-                        showTopList(context, listGenres[i], "")
-                  ],
-                ),
-              ),
-              Container(
-                margin: const EdgeInsets.only(left: 20.0, top: 10),
-                child: const Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    "By Department",
-                    textAlign: TextAlign.start,
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.fromLTRB(20.0, 15.0, 20.0, 10.0),
-                height: 200.0,
-                child: ListView(
-                  scrollDirection: Axis.horizontal,
-                  children: [
-                    for (int i = 0; i < 9; i++)
-                      if (listDepts.length > i)
-                        showTopList(context, listDepts[i], "")
-                  ],
-                ),
-              ),
-              GridView.count(
-                crossAxisCount: 2,
-                shrinkWrap: true,
-                children: <Widget>[
-                  for (int i = 1; i <= 20; i++)
-                    Card(
-                      margin: const EdgeInsets.fromLTRB(10, 5, 10, 15),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10.0),
-                      ),
-                      elevation: 5,
-                      child: Column(
-                        children: [
-                          AspectRatio(
-                            aspectRatio: 5 / 4,
-                            child: Image.asset(
-                              "assets/portrait.jpg",
-                              fit: BoxFit.fill,
-                            ),
-                          ),
-                          const Padding(
-                            padding: EdgeInsets.all(8),
-                            child: Text("Something"),
-                          ),
-                        ],
-                      ),
-                    ),
-                ],
-              ),
-            ],
-          ),
-        ));
+                )
+            );
+          } else {
+            return const CircularProgressIndicator();
+          }
+        }
+    );
   }
 }
 
@@ -361,7 +385,12 @@ Widget showTopList(BuildContext c, String bookId, String bookName) => InkWell(
             border: Border.all(
               color: Colors.black12,
             ),
-            borderRadius: const BorderRadius.all(Radius.circular(20))),
+            borderRadius: const BorderRadius.all(Radius.circular(20)),
+          image: DecorationImage(
+            image: AssetImage("assets/${bookName}.jpg"),
+            fit: BoxFit.cover,
+          ),
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.end,
