@@ -58,9 +58,17 @@ class dbase {
   Future<List<String>> getBookInfo(String bookId) async {
     MySQLConnectionPool conn = getConn();
     List<String> bookInfo = [];
-    var r = await conn.execute("SELECT book_title, book_author, book_summary FROM books WHERE book_id = $bookId");
+    var r = await conn.execute("SELECT book_title, book_author, book_summary, book_genre, book_dept FROM books WHERE book_id = $bookId");
     for (final row in r.rows) {
       bookInfo.add(row.typedColAt(0));
+      bookInfo.add(row.typedColAt(1));
+      bookInfo.add(row.typedColAt(2));
+
+      if (row.typedColAt(4)=="") {
+        bookInfo.add(row.typedColAt(3));
+      } else {
+        bookInfo.add(row.typedColAt(4));
+      }
     }
     await conn.close();
     return bookInfo;
